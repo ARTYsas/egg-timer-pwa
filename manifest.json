@@ -1,8 +1,9 @@
 {
   "name": "Таймер-варки-яиц",
   "short_name": "Яйцо-таймер",
-  "start_url": "/",
+  "start_url": "/egg-timer-pwa/",
   "display": "standalone",
+  "scope": "/egg-timer-pwa/",
   "background_color": "#ffffff",
   "theme_color": "#ffcc00",
   "orientation": "portrait",
