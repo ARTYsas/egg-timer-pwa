@@ -71,19 +71,19 @@ function enableSmoothSnapSlider(sliderId, allowedSteps, duration = 200) {
   let dragStarted = false;
   let startX = 0;
 
-  slider.addEventListener("pointerdown", (e) => {
+  function handleStart(x) {
     isDragging = true;
     dragStarted = false;
-    startX = e.clientX;
-  });
+    startX = x;
+  }
 
-  slider.addEventListener("pointermove", (e) => {
+  function handleMove(x) {
     if (!isDragging) return;
-    const dx = Math.abs(e.clientX - startX);
+    const dx = Math.abs(x - startX);
     if (dx > 2) dragStarted = true;
-  });
+  }
 
-  slider.addEventListener("pointerup", () => {
+  function handleEnd() {
     if (!isDragging) return;
     isDragging = false;
 
@@ -95,11 +95,20 @@ function enableSmoothSnapSlider(sliderId, allowedSteps, duration = 200) {
     if (dragStarted) {
       animateSliderToValue(slider, currentValue, nearest, duration);
     } else {
-      // если просто тапнули — сразу округляем без анимации
       slider.value = nearest;
       slider.dispatchEvent(new Event("input"));
     }
-  });
+  }
+
+  // Pointer events (для десктопа)
+  slider.addEventListener("pointerdown", (e) => handleStart(e.clientX));
+  slider.addEventListener("pointermove", (e) => handleMove(e.clientX));
+  slider.addEventListener("pointerup", handleEnd);
+
+  // Touch events (для телефона)
+  slider.addEventListener("touchstart", (e) => handleStart(e.touches[0].clientX));
+  slider.addEventListener("touchmove", (e) => handleMove(e.touches[0].clientX));
+  slider.addEventListener("touchend", handleEnd);
 }
 
 function animateSliderToValue(slider, from, to, duration) {
