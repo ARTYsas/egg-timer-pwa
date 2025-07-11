@@ -65,6 +65,34 @@ function playSound() {
   audio.play().catch(() => {});
 }
 
+function enableSnapAfterRelease(sliderId, steps) {
+  const slider = document.getElementById(sliderId);
+
+  let isDragging = false;
+
+  // Сохраняем позицию при нажатии
+  slider.addEventListener("pointerdown", () => {
+    isDragging = true;
+  });
+
+  // Когда отпускаем — округляем
+  slider.addEventListener("pointerup", () => {
+    if (!isDragging) return;
+    isDragging = false;
+
+    // Находим ближайшее значение из steps
+    const value = parseFloat(slider.value);
+    const nearest = steps.reduce((prev, curr) =>
+      Math.abs(curr - value) < Math.abs(prev - value) ? curr : prev
+    );
+    slider.value = nearest;
+    slider.dispatchEvent(new Event("input")); // Обновить UI/данные
+  });
+}
+enableSnapAfterRelease("sizeSlider", [0, 1, 2]);
+enableSnapAfterRelease("cookSlider", [0, 1, 2]);
+
+
 sizeSlider.addEventListener("input", () => {
   sizeLabel.textContent = ["С0", "С1", "С2"][sizeSlider.value];
 });
