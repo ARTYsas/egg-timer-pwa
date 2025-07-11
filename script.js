@@ -68,9 +68,19 @@ function playSound() {
 function enableSmoothSnapSlider(sliderId, allowedSteps, duration = 200) {
   const slider = document.getElementById(sliderId);
   let isDragging = false;
+  let dragStarted = false;
+  let startX = 0;
 
-  slider.addEventListener("pointerdown", () => {
+  slider.addEventListener("pointerdown", (e) => {
     isDragging = true;
+    dragStarted = false;
+    startX = e.clientX;
+  });
+
+  slider.addEventListener("pointermove", (e) => {
+    if (!isDragging) return;
+    const dx = Math.abs(e.clientX - startX);
+    if (dx > 2) dragStarted = true;
   });
 
   slider.addEventListener("pointerup", () => {
@@ -82,7 +92,13 @@ function enableSmoothSnapSlider(sliderId, allowedSteps, duration = 200) {
       Math.abs(curr - currentValue) < Math.abs(prev - currentValue) ? curr : prev
     );
 
-    animateSliderToValue(slider, currentValue, nearest, duration);
+    if (dragStarted) {
+      animateSliderToValue(slider, currentValue, nearest, duration);
+    } else {
+      // если просто тапнули — сразу округляем без анимации
+      slider.value = nearest;
+      slider.dispatchEvent(new Event("input"));
+    }
   });
 }
 
@@ -100,7 +116,7 @@ function animateSliderToValue(slider, from, to, duration) {
       requestAnimationFrame(animate);
     } else {
       slider.value = to;
-      slider.dispatchEvent(new Event("input")); // Обновим UI
+      slider.dispatchEvent(new Event("input"));
     }
   }
 
@@ -110,8 +126,8 @@ function animateSliderToValue(slider, from, to, duration) {
 function easeInOut(t) {
   return 0.5 - Math.cos(t * Math.PI) / 2;
 }
-enableSmoothSnapSlider("sizeSlider", [0, 1, 2]);
-enableSmoothSnapSlider("cookSlider", [0, 1, 2]);
+enableSmoothSnapSlider("sizeSlider", [0, 1, 2], 200);
+enableSmoothSnapSlider("cookSlider", [0, 1, 2], 200);
 
 
 
