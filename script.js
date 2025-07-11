@@ -65,32 +65,54 @@ function playSound() {
   audio.play().catch(() => {});
 }
 
-function enableSnapAfterRelease(sliderId, steps) {
+function enableSmoothSnapSlider(sliderId, allowedSteps, duration = 200) {
   const slider = document.getElementById(sliderId);
-
   let isDragging = false;
 
-  // Сохраняем позицию при нажатии
   slider.addEventListener("pointerdown", () => {
     isDragging = true;
   });
 
-  // Когда отпускаем — округляем
   slider.addEventListener("pointerup", () => {
     if (!isDragging) return;
     isDragging = false;
 
-    // Находим ближайшее значение из steps
-    const value = parseFloat(slider.value);
-    const nearest = steps.reduce((prev, curr) =>
-      Math.abs(curr - value) < Math.abs(prev - value) ? curr : prev
+    const currentValue = parseFloat(slider.value);
+    const nearest = allowedSteps.reduce((prev, curr) =>
+      Math.abs(curr - currentValue) < Math.abs(prev - currentValue) ? curr : prev
     );
-    slider.value = nearest;
-    slider.dispatchEvent(new Event("input")); // Обновить UI/данные
+
+    animateSliderToValue(slider, currentValue, nearest, duration);
   });
 }
-enableSnapAfterRelease("sizeSlider", [0, 1, 2]);
-enableSnapAfterRelease("cookSlider", [0, 1, 2]);
+
+function animateSliderToValue(slider, from, to, duration) {
+  const startTime = performance.now();
+
+  function animate(time) {
+    const elapsed = time - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const value = from + (to - from) * easeInOut(progress);
+
+    slider.value = value;
+
+    if (progress < 1) {
+      requestAnimationFrame(animate);
+    } else {
+      slider.value = to;
+      slider.dispatchEvent(new Event("input")); // Обновим UI
+    }
+  }
+
+  requestAnimationFrame(animate);
+}
+
+function easeInOut(t) {
+  return 0.5 - Math.cos(t * Math.PI) / 2;
+}
+enableSmoothSnapSlider("sizeSlider", [0, 1, 2]);
+enableSmoothSnapSlider("cookSlider", [0, 1, 2]);
+
 
 
 sizeSlider.addEventListener("input", () => {
